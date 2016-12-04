@@ -1,0 +1,419 @@
+---
+title: "STA257"
+author: "Neil Montgomery | HTML is official | PDF versions good for in-class use only"
+date: "Last edited: `r format(Sys.time(), '%Y-%m-%d %H:%M')`"
+output: 
+  ioslides_presentation: 
+    css: '../styles.css' 
+    widescreen: true 
+    transition: 0.001
+header-includes:
+- \usepackage{cancel}
+---
+\newcommand\given[1][]{\:#1\vert\:}
+\newcommand\P[1]{P{\left(#1\right)}}
+\newcommand\F[1]{F_{\tiny{#1}}}
+\newcommand\f[1]{f_{\tiny{#1}}}
+\newcommand\p[1]{p_{\tiny{#1}}}
+\newcommand\V[1]{\text{Var}\!\left(#1\right)}
+\newcommand\E[1]{E\!\left(#1\right)}
+\newcommand\m[1]{m_{\tiny{#1}}}
+\newcommand\od{\overset{D}\longrightarrow}
+
+
+## some sums of r.v.s { .build }
+
+If $X_1,\ldots,X_n$ are i.i.d. Bernoulli$(p)$, then $\sum X_i \sim \text{Binomial}(n,p)$...
+
+If $X_1,\ldots,X_n$ are i.i.d. Geometric$(p)$, then $\sum X_i \sim \text{NegBin}(n,p)$...
+
+This is fundamentally a "lookup table" technique.
+
+Others (exercises):
+
+* sum of $n$ independent Exp$(\lambda)$ is Gamma$(n,\lambda)$
+* sum of $n$ independent Poisson$(\lambda)$ is Poisson$(n\lambda)$
+* sum of $X_i\sim\text{Binomial}(n_i, p)$ is Binomial$\left(\sum n_i, p\right)$
+* distribution of sum of $X_i\sim\text{Binomial}(n_i, p_i)$ (different p_i!) cannot be determined using mgf technique.
+
+## the normal distributions { .build }
+
+First, suppose $X$ has mgf $\m{X}(t)$ and $Y = a + bX$. What is $\m{Y}(t)$?
+
+So what is the mfg of a general $N(\mu, \sigma^2)?$
+
+Finally, if $X_1,\ldots,X_n$ are independent with $X_i\sim N(\mu_i, \sigma^2_i)?$, what distribution is $X=\sum X_i?$
+
+# sequences of random variables, convergence
+
+## (optional background) sequences of functions
+
+Depending on your background, you might have heard of:
+
+* pointwise convergence $f_n(x) \to f(x)$ (converges for every $x$)
+* uniform convergence (convergence happens all at the same rate
+
+Uniform convergence is stronger and has benefits - you can pass limits, derivatives, integrals, etc. through uniform convergence with no problem.
+
+In this course we have sometimes magically passed these things along with the $\E{}$ operator through *power series*, because power series converge *uniformly* inside their radius of convergence. 
+
+But don't worry if you've never heard of this or forgot it all.
+
+## sequences of random variables { .build }
+
+Very common in probability and statistics. We have seen some already:
+
+As a model for a variable in a dataset we have considered the "i.i.d." sequence $X_1,X_2,\ldots,X_n.$ 
+
+I have introduced the notion of "Sample Average" $\overline X_n = \frac{1}{n}\sum\limits_{i=1}^n X_i$. 
+
+When we derived Poisson from Binomial, we (implicitly) considered a sequence $X_n \sim \text{Binomial}\left(n, \frac{\lambda}{n}\right)$ and wondered about $n\to\infty.$
+
+We're going to wonder again about $n\to\infty$
+
+Again, with random variables we care most about probabilities and not their actual values.
+
+## Case 1: getting closer to a constant, probably
+
+Consider $X_1,X_2,\ldots,X_n$ i.i.d. with $\E{X_i}=\mu$ and $\V{X_i}=\sigma^2,$ and consider $\overline X_n = \frac{1}{n}\sum\limits_{i=1}^n X_i.$
+
+From last week:
+$$\E{\overline X_n} = \mu \qquad \text{and} \qquad \V{\overline X_n} = \frac{\sigma^2}{n}$$
+What happens when $n$ gets bigger?
+
+## simulation example 1 - Bernoulli(0.5)
+
+My computer can pretend to observe Bernoulli random variables. Here are $n=30$ Binomial(1,0.5) simulations:
+
+```{r}
+rbinom(n=30, size=1, prob=0.5)
+```
+
+I am going to let $n$ get larger and plot $n$ versus cumulative values of $\overline{X}_n.$
+
+## simulation example 1 - Bernoulli(0.5)
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=8, fig.height=5, fig.align='center'}
+library(dplyr)
+bern_10000 <- rbinom(10000, 1, 0.5)
+plot(1:100, cummean(bern_10000[1:100]), type="l", ylim=c(0,1),
+     xlab="n", ylab="Cumulative Mean")
+abline(h=0.5)
+```
+
+## simulation example 1 - Bernoulli(0.5)
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=8, fig.height=5, fig.align='center'}
+up_to <- 1000
+plot(1:up_to, cummean(bern_10000[1:up_to]), type="l", ylim=c(0,1),
+     xlab="n", ylab="Cumulative Mean")
+abline(h=0.5)
+```
+
+## simulation example 1 - Bernoulli(0.5)
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=8, fig.height=5, fig.align='center'}
+up_to <- 10000
+plot(1:up_to, cummean(bern_10000[1:up_to]), type="l", ylim=c(0,1),
+     xlab="n", ylab="Cumulative Mean")
+abline(h=0.5)
+```
+
+## simulation example 2 - Exponential(0.25)
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=8, fig.height=5, fig.align='center'}
+
+exp_10000 <- rexp(10000, rate=0.25)
+up_to <- 100
+plot(1:up_to, cummean(exp_10000[1:up_to]), type="l", ylim=c(0,8),
+     xlab="n", ylab="Cumulative Mean")
+abline(h=4)
+```
+
+## simulation example 2 - Exponential(0.25)
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=8, fig.height=5, fig.align='center'}
+
+up_to <- 1000
+plot(1:up_to, cummean(exp_10000[1:up_to]), type="l", ylim=c(0,8),
+     xlab="n", ylab="Cumulative Mean")
+abline(h=4)
+```
+
+## simulation example 2 - Exponential(0.25)
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=8, fig.height=5, fig.align='center'}
+
+up_to <- 10000
+plot(1:up_to, cummean(exp_10000[1:up_to]), type="l", ylim=c(0,8),
+     xlab="n", ylab="Cumulative Mean")
+abline(h=4)
+```
+
+## simulation example 3 - The *Neil* distribution
+
+Positive random variable $X$ with density $\frac{8}{\pi}\frac{x}{x^4 + 4}$
+
+$E(X) = 2$ (hard!!) and $\V{X}$ does not exist.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=8, fig.height=5, fig.align='center'}
+
+neil_100000 <- sqrt(2*tan(pi*runif(100000)/2))
+
+up_to <- 100
+plot(1:up_to, cummean(neil_100000[1:up_to]), type="l", ylim=c(0,4),
+     xlab="n", ylab="Cumulative Mean")
+abline(h=2)
+```
+
+## simulation example 3 - The *Neil* distribution
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=8, fig.height=5, fig.align='center'}
+
+neil_100000 <- sqrt(2*tan(pi*runif(100000)/2))
+
+up_to <- 1000
+plot(1:up_to, cummean(neil_100000[1:up_to]), type="l", ylim=c(0,4),
+     xlab="n", ylab="Cumulative Mean")
+abline(h=2)
+```
+
+## simulation example 3 - The *Neil* distribution
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=8, fig.height=5, fig.align='center'}
+
+neil_100000 <- sqrt(2*tan(pi*runif(100000)/2))
+
+up_to <- 10000
+plot(1:up_to, cummean(neil_100000[1:up_to]), type="l", ylim=c(0,4),
+     xlab="n", ylab="Cumulative Mean")
+abline(h=2)
+```
+
+## simulation example 3 - the *Neil* distribution
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=8, fig.height=5, fig.align='center'}
+
+neil_100000 <- sqrt(2*tan(pi*runif(100000)/2))
+
+up_to <- 100000
+plot(1:up_to, cummean(neil_100000[1:up_to]), type="l", ylim=c(0,4),
+     xlab="n", ylab="Cumulative Mean")
+abline(h=2)
+```
+
+## simulation example 4 - the Cauchy distribution
+
+Density $\frac{1}{\pi}\frac{1}{1+x^2}.$ No expected value
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=8, fig.height=5, fig.align='center'}
+
+cauchy_100000 <- rcauchy(1000000)
+
+up_to <- 1000000
+plot(1:up_to, cummean(cauchy_100000[1:up_to]), type="l", ylim=c(-10,10),
+     xlab="n", ylab="Cumulative Mean")
+
+```
+
+## the (weak) Law of Large Numbers { .build }
+
+Examples 1 and 2 had random variables with mean $\mu$ and variance $\sigma^2.$ The convergence of the $\overline{X}_n$ to $\mu$ is explained by...
+
+Theorem: If $X_1, X_2, X_3,\ldots$ are independent with the same mean $\mu$ and variance $\sigma^2,$ then for all $\epsilon > 0$:
+$$\lim_{n\to\infty} \P{\left|\overline{X}_n - \mu\right| > \varepsilon} = 0.$$
+
+Proof:...
+
+This does *not* explain example 3 (no variance), and doesn't really explain 4 either.
+
+Good for theory and philosophy. Not so good in practice (rate of convergence?)
+
+## convergence in probability
+
+The WLLN is an example of *convergence in probability*:
+$$\lim_{n\to\infty} \P{\left|X_n - X\right| > \varepsilon} = 0,$$
+and in the WLLN $X=\mu$ is a constant random variable.
+
+Common notation: $X_n \overset{P}\longrightarrow X$
+
+Convergence in probability has to do with *values* of random variables.
+
+The *distribution* of $X$ (what we care about) only deals with things like $P(a < X < b),$ which is less stringent than convergence in probability.
+
+## convergence in distribution { .build }
+
+Roughly speaking, the distribution of $X_n$ converges to the distribution of $X$ if their cdfs converge: $\F{X_n} \to \F{X}$
+
+Formal definition: $X_n$ *converges in distribution* to $X$ if
+$$\lim_{n\to\infty} \F{X_n}(x) = \F{X}(x)$$
+at every point where $\F{X}(x)$ is continuous.
+
+Common notations:
+$$X_n \Longrightarrow X\\
+X_n \overset{D}\longrightarrow X$$
+\newcommand{\od}{\overset{D}\longrightarrow}
+
+Definition not so easy to use. 
+
+## verifying convergence in distribution { .build }
+
+Stated without proof; all imply $X_n \od X$.
+
+Theorem: $X_n$ with pmf $\p{X_n}(x)$ that converge to a pmf $\p{X}(x)$...
+
+Example: $X_n \sim \text{Binomial}\left(n,\frac{\lambda}{n}\right)$ and $X\sim\text{Poisson}(\lambda)$
+
+Theorem: $X_n$ with density $\f{X_n}(x)$ that converge to a density $\f{X}(x)$...
+
+Future example for STA261 students: $X_n \sim t_n$ and $X\sim N(0,1)$
+
+**THEOREM**: $X_n$ with m.g.f. $\m{X_n}(t)$ that converge to an m.g.f. $\m{X}(t)$ in a neighborhood of 0 implies $X_n \od X$.
+
+Example: $X_n \sim \text{Binomial}\left(n,\frac{\lambda}{n}\right)$...
+
+# the fundamental theorem of statistics
+
+## the distribution of $\overline{X}_n$
+
+Let's consider again $X_1,X_2,\ldots$ now i.i.d. with m.g.f. $m(t)$. The common mean and variance are $\mu$ and $\sigma^2$.
+
+$\E{\overline X_n}=\mu$ and $\V{\overline X_n} = \frac{\sigma^2}{n}$
+
+Consider:
+$$Y_n = \frac{\overline X_n - \mu}{\sigma/\sqrt{n}}$$
+
+Then $\E{Y_n}=0$ and $\V{Y_n}=1$.
+
+What could be said about the *distribution* of $Y_n$?
+
+## histograms (for simulating $Y_n$)
+
+A *histogram* takes a sequence of numbers (the "data"), splits the range into "bins", and produces a bar graph of the count inside each bin. 
+
+A histogram is a "density estimator". Here's a histogram of $k=`r (k <- 100)`$
+randomly samples from an $\text{Exp}(1)$ distribution, with the density in red:
+
+```{r, echo=FALSE, fig.align='center'}
+exp1 <- rexp(k)
+x <- seq(0, ceiling(max(exp1)), length.out = 100)
+hist(exp1, n=40, prob=TRUE, main="Histogram of Exp(1)", xlab="",ylab="")
+lines(x, dexp(x), lwd=2, col="red")
+```
+
+## more simulation = smoother histogram
+
+$k=`r (k <- 10000)`$
+
+```{r, echo=FALSE, fig.align='center'}
+exp1 <- rexp(k)
+x <- seq(0, ceiling(max(exp1)), length.out = 100)
+hist(exp1, nclass=40, prob=TRUE, main="Histogram of Exp(1)", xlab="",ylab="")
+lines(x, dexp(x), lwd=2, col="red")
+```
+
+
+## simulating $Y_n$
+
+Fix $n$ and a distribtion for $X_i$.
+
+1. Simulate a sample of size $n$ from the distribution.
+
+2. Calculate $Y_n^{(1)}$ from this sample.
+
+3. Repeat $k$ times to obtain $Y_n^{(1)},\ldots,Y_n^{(k)}$
+
+4. Make a histogram of the $Y_n^{(j)}$
+
+Important: $n$ is fixed and fundamental to the simulation. A larger $k$ makes a nicer histogram and is more of a choice to make.
+
+## example 1 with $n=10$ and $X_i \sim \text{Geometric}(1/3)$ 
+
+```{r, echo=FALSE, fig.align='center'}
+k <- 10000
+n <- 10
+p <- 1/3
+mu <- 1/p
+sigma <- sqrt((1-p)/p^2)
+y_n <- (apply(replicate(k, rgeom(n, p)+1), 2, mean) - mu)/(sigma/sqrt(n))
+hist(y_n, nclass = 40)
+```
+
+## example 1 with $n=50$ and $X_i \sim \text{Geometric}(1/3)$ 
+
+```{r, echo=FALSE, fig.align='center'}
+n <- 50
+y_n <- (apply(replicate(k, rgeom(n, p)+1), 2, mean) - mu)/(sigma/sqrt(n))
+hist(y_n, nclass = 40)
+```
+
+## example 1 with $n=500$ and $X_i \sim \text{Geometric}(1/3)$ 
+
+```{r, echo=FALSE, fig.align='center'}
+n <- 500
+y_n <- (apply(replicate(k, rgeom(n, p)+1), 2, mean) - mu)/(sigma/sqrt(n))
+hist(y_n, nclass = 40)
+```
+
+## example 2 with $n=10$ and $X_i \sim \text{Exp}(0.25)$
+
+```{r, echo=FALSE, fig.align='center'}
+k <- 10000
+n <- 10
+lambda = 0.25
+mu <- 1/lambda
+sigma <- 1/lambda
+y_n <- (apply(replicate(k, rexp(n, rate=lambda)), 2, mean) - mu)/(sigma/sqrt(n))
+hist(y_n, nclass = 40)
+```
+
+## example 2 with $n=50$ and $X_i \sim \text{Exp}(0.25)$
+
+```{r, echo=FALSE, fig.align='center'}
+k <- 10000
+n <- 50
+lambda = 0.25
+mu <- 1/lambda
+sigma <- 1/lambda
+y_n <- (apply(replicate(k, rexp(n, rate=lambda)), 2, mean) - mu)/(sigma/sqrt(n))
+hist(y_n, nclass = 40)
+```
+
+## example 2 with $n=500$ and $X_i \sim \text{Exp}(0.25)$
+
+```{r, echo=FALSE, fig.align='center'}
+k <- 10000
+n <- 500
+lambda = 0.25
+mu <- 1/lambda
+sigma <- 1/lambda
+y_n <- (apply(replicate(k, rexp(n, rate=lambda)), 2, mean) - mu)/(sigma/sqrt(n))
+hist(y_n, nclass = 40)
+```
+
+## The Central Limit Theorem { .build }
+
+Theorem: $X_1,X_2,\ldots$ are i.i.d. with m.g.f. $m(t)$, mean $\mu$, and variance  $\sigma^2$. Then:
+$$\frac{\overline X_n - \mu}{\sigma/\sqrt{n}} \od Z$$
+where $Z\sim N(0,1).$
+
+Proof:...
+
+This is a *limit theorem*. What is crucial is that the convergence can be *fast*.
+
+## normal approximations
+
+For $X_1,X_2,\ldots,X_n$ with mean $\mu$ and variance $\sigma^2$ and $n$ large enough\*
+
+$$\sum\limits_{i=1}^n X_i \sim^\text{approx} N(n\mu, n\sigma^2)\\
+\overline{X} \sim^\text{approx} N\left(\mu,\frac{\sigma^2}{n}\right)\\
+\frac{\overline{X} - \mu}{\sigma/\sqrt{n}} \sim^\text{approx} N(0,1)$$
+
+\* depends on the underlying distribution. The more "skewed" or "heavy-tailed", the larger the $n$ required.
+
+## example - Uniform(0,1)
+
+$X_1,X_2,\ldots,X_n$ are Uniform(0,1) and $n=20.$ What's the chance that $\sum X_i > 11$ 
+
+
+
